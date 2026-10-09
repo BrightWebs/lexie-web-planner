@@ -1,0 +1,20 @@
+{
+  "name": "Lexie — Daily Planner",
+  "short_name": "Lexie",
+  "description": "A warm, voice-friendly planner that helps make the day feel a little lighter.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf8f5",
+  "theme_color": "#faf8f5",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
