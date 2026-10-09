@@ -22,6 +22,8 @@
   const calendarStatus = document.querySelector("#calendar-status");
   const calendarStatusText = document.querySelector("#calendar-status-text");
   const calendarEventsElement = document.querySelector("#calendar-events");
+  const siteOrigin = document.querySelector("#site-origin");
+  if (siteOrigin) siteOrigin.textContent = window.location.origin;
   let tasks = loadTasks();
   let reminderTimers = [];
   let deferredInstallPrompt = null;

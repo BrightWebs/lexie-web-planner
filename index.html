@@ -34,7 +34,7 @@
             <p id="day-summary">One little thing at a time. You’ve got this.</p>
           </div>
           <div class="portrait-medallion">
-            <img src="./lexie-portrait.jpg" alt="Personalized black-and-white portrait artwork for Lexie" fetchpriority="high">
+            <img src="./lexie-portrait.jpg" alt="Lexie pictured with her family outdoors" fetchpriority="high">
           </div>
           <div class="welcome-orb" aria-hidden="true"></div>
           <div class="welcome-card-foot"><span class="tiny-sparkle">✦</span> A gentle plan, at your pace.</div>
@@ -148,10 +148,10 @@
       <ol class="setup-steps">
         <li>Open Google Cloud, choose or create a project, and enable the <strong>Google Calendar API</strong>.</li>
         <li>Set up the OAuth consent screen and add the Google account you’ll connect as a test user if Google asks.</li>
-        <li>Create an <strong>OAuth client ID → Web application</strong>. Add this site’s exact address under <strong>Authorized JavaScript origins</strong>. For local testing, use <code>http://localhost:5173</code>.</li>
+        <li>Create an <strong>OAuth client ID → Web application</strong>. Add this exact origin under <strong>Authorized JavaScript origins</strong>: <code id="site-origin">https://brightwebs.github.io</code>. For local testing, also use <code>http://localhost:5173</code>.</li>
         <li>Paste the client ID below, save, then choose <strong>Connect</strong> and approve Google’s access request.</li>
       </ol>
-      <p>Never paste a client secret here. If you publish the site at a different address, add its exact HTTPS origin to your Google OAuth client first.</p>
+      <p>Only the public client ID belongs here—never paste a client secret. Google requires the authorized origin to match exactly.</p>
       <label class="field-label" for="google-client-id">Google OAuth client ID</label>
       <input class="settings-input" id="google-client-id" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="123456789-abc.apps.googleusercontent.com">
       <p class="dialog-footnote">When you connect, Google will ask permission to read, add, edit, and delete calendar events. Lexie keeps the temporary sign-in token in memory, not in saved browser storage. Disconnect or remove Lexie’s access from your Google Account at any time. Google may show an unverified-app warning while your OAuth project is in testing.</p>
@@ -168,6 +168,6 @@
       <button class="dialog-action" type="button" id="privacy-done">Sounds good</button>
     </dialog>
     <script src="https://accounts.google.com/gsi/client" async defer data-google-identity="true"></script>
-    <script src="./app.js?v=4" defer></script>
+    <script src="./app.js?v=5" defer></script>
   </body>
 </html>

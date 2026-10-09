@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "lexie-web-v3";
+const CACHE_NAME = "lexie-web-v4";
 const APP_FILES = [
   "./",
   "./index.html",
