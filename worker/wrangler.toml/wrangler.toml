@@ -1,0 +1,15 @@
+name = "brixie-assistant"
+main = "src/index.js"
+compatibility_date = "2026-10-09"
+workers_dev = true
+
+[ai]
+binding = "AI"
+
+[[ratelimits]]
+name = "AI_RATE_LIMITER"
+namespace_id = "7619042"
+
+  [ratelimits.simple]
+  limit = 12
+  period = 60
