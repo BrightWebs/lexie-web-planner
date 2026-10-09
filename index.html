@@ -85,6 +85,7 @@
             <span class="voice-caption" id="voice-caption">TAP TO TALK</span>
             <div class="voice-actions">
               <button class="text-button" id="voice-settings-button" type="button">Change voice</button>
+              <button class="text-button" id="ai-settings-button" type="button">AI setup</button>
               <p class="voice-hint" id="voice-hint">Or type instead — whatever feels easy.</p>
             </div>
           </div>
@@ -139,6 +140,18 @@
       <button class="secondary-dialog-action" type="button" id="preview-voice">Play a voice sample</button>
       <button class="dialog-action" type="button" id="voice-done">Done</button>
     </dialog>
+    <dialog id="ai-dialog" class="help-dialog">
+      <form method="dialog" class="dialog-close-wrap"><button class="dialog-close" aria-label="Close">×</button></form>
+      <div class="dialog-icon">✦</div>
+      <p class="section-kicker">OPTIONAL AI CONNECTION</p>
+      <h2>Connect Brixie’s AI</h2>
+      <p>Deploy Brixie’s free Cloudflare Worker, then paste its public <code>workers.dev</code> address here. The address ends in <code>/chat</code>. Do not paste an API key.</p>
+      <label class="field-label" for="ai-endpoint">Cloudflare Worker URL</label>
+      <input class="settings-input" id="ai-endpoint" type="url" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="https://brixie-assistant.your-name.workers.dev/chat">
+      <p class="dialog-footnote">AI replies use Cloudflare Workers AI’s free daily allowance and Wikipedia search extracts, with source links. Free usage is limited; when it runs out, Brixie will say so. Your messages are sent to Cloudflare AI and Wikipedia search, so avoid sharing sensitive information. This is not unrestricted web search and can make mistakes.</p>
+      <button class="dialog-action" type="button" id="save-ai-settings">Save connection</button>
+      <a class="dialog-link" href="https://github.com/BrightWebs/lexie-web-planner#setting-up-brixies-free-ai" target="_blank" rel="noreferrer">Setup instructions <span aria-hidden="true">↗</span></a>
+    </dialog>
     <dialog id="calendar-dialog" class="help-dialog">
       <form method="dialog" class="dialog-close-wrap"><button class="dialog-close" aria-label="Close">×</button></form>
       <div class="dialog-icon">▦</div>
@@ -168,6 +181,6 @@
       <button class="dialog-action" type="button" id="privacy-done">Sounds good</button>
     </dialog>
     <script src="https://accounts.google.com/gsi/client" async defer data-google-identity="true"></script>
-    <script src="./app.js?v=6" defer></script>
+    <script src="./app.js?v=8" defer></script>
   </body>
 </html>

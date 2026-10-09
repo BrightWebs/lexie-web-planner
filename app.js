@@ -3,6 +3,8 @@
 (() => {
   const STORAGE_KEY = "lexie-web-tasks-v1";
   const GOOGLE_CLIENT_KEY = "lexie-google-client-id-v1";
+  const AI_ENDPOINT_KEY = "brixie-ai-endpoint-v1";
+  const MAX_AI_HISTORY = 8;
   const GOOGLE_SCOPE = "https://www.googleapis.com/auth/calendar.events";
   const conversation = document.querySelector("#conversation");
   const form = document.querySelector("#chat-form");
@@ -23,6 +25,10 @@
   const calendarStatusText = document.querySelector("#calendar-status-text");
   const calendarEventsElement = document.querySelector("#calendar-events");
   const siteOrigin = document.querySelector("#site-origin");
+  const aiDialog = document.querySelector("#ai-dialog");
+  const aiEndpointInput = document.querySelector("#ai-endpoint");
+  const aiSettingsButton = document.querySelector("#ai-settings-button");
+  const conversationHistory = [];
   if (siteOrigin) siteOrigin.textContent = window.location.origin;
   let tasks = loadTasks();
   let reminderTimers = [];
@@ -36,6 +42,16 @@
   let calendarEvents = [];
   let calendarRefreshTimer = null;
   let calendarClientId = loadCalendarClientId();
+  let aiEndpoint = loadAiEndpoint();
+
+  function loadAiEndpoint() {
+    try {
+      return localStorage.getItem(AI_ENDPOINT_KEY) || "";
+    } catch (error) {
+      console.error("Couldn't read Brixie's AI connection setting.", error);
+      return "";
+    }
+  }
 
   function loadCalendarClientId() {
     try {
@@ -133,6 +149,7 @@
     message.textContent = text;
     conversation.append(message);
     conversation.scrollTop = conversation.scrollHeight;
+    return message;
   }
 
   function speak(text) {
@@ -149,7 +166,104 @@
 
   function respond(text, shouldSpeak = true) {
     addMessage(text);
+    rememberConversation("assistant", text);
     if (shouldSpeak) speak(text);
+  }
+
+  function rememberConversation(role, content) {
+    conversationHistory.push({ role, content: content.slice(0, 1_000) });
+    if (conversationHistory.length > MAX_AI_HISTORY) {
+      conversationHistory.splice(0, conversationHistory.length - MAX_AI_HISTORY);
+    }
+  }
+
+  function normalizeAiEndpoint(value) {
+    let url;
+    try {
+      url = new URL(value.trim());
+    } catch {
+      return null;
+    }
+    const isWorkersDev = url.protocol === "https:"
+      && url.hostname.endsWith(".workers.dev");
+    const isLocal = url.protocol === "http:"
+      && ["localhost", "127.0.0.1"].includes(url.hostname);
+    if ((!isWorkersDev && !isLocal) || url.pathname !== "/chat"
+      || url.username || url.password || url.search || url.hash) return null;
+    return url.toString().replace(/\/$/, "");
+  }
+
+  function renderAiAnswer(answer, sources) {
+    const message = addMessage(answer);
+    if (Array.isArray(sources) && sources.length) {
+      const sourceList = document.createElement("div");
+      sourceList.className = "message-sources";
+      const label = document.createElement("span");
+      label.textContent = "Sources";
+      sourceList.append(label);
+      for (const source of sources.slice(0, 3)) {
+        if (typeof source?.title !== "string" || typeof source?.url !== "string") continue;
+        let sourceUrl;
+        try {
+          sourceUrl = new URL(source.url);
+        } catch {
+          continue;
+        }
+        if (sourceUrl.protocol !== "https:" || sourceUrl.hostname !== "en.wikipedia.org") continue;
+        const link = document.createElement("a");
+        link.href = sourceUrl.href;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = source.title.slice(0, 200);
+        sourceList.append(link);
+      }
+      if (sourceList.querySelector("a")) message.append(sourceList);
+    }
+    rememberConversation("assistant", answer);
+    conversation.scrollTop = conversation.scrollHeight;
+    speak(answer);
+  }
+
+  async function askAi(text) {
+    if (!aiEndpoint) {
+      respond("I can help with general questions once the free AI connection is set up. Tap “AI setup” to connect it, or ask me about your reminders and calendar.");
+      return;
+    }
+
+    const pendingMessage = addMessage("Looking that up…", "assistant pending");
+    try {
+      const response = await fetch(aiEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: text,
+          history: conversationHistory.slice(0, -1).slice(-MAX_AI_HISTORY),
+        }),
+      });
+      let result;
+      try {
+        result = await response.json();
+      } catch (error) {
+        console.error("Brixie's AI service returned invalid JSON.", error);
+        throw new Error("Brixie’s AI service sent an unreadable reply. Please try again.");
+      }
+      if (!response.ok) {
+        throw new Error(typeof result?.error === "string"
+          ? result.error
+          : `Brixie’s AI service returned an error (${response.status}).`);
+      }
+      if (typeof result?.answer !== "string" || !result.answer.trim()) {
+        throw new Error("Brixie’s AI service returned an empty answer. Please try again.");
+      }
+      pendingMessage.remove();
+      renderAiAnswer(result.answer.trim(), result.sources);
+    } catch (error) {
+      console.error("Couldn't get an AI response from Brixie.", error);
+      pendingMessage.remove();
+      respond(error instanceof TypeError
+        ? "I couldn’t reach Brixie’s AI service. Check the connection URL and internet access, then try again."
+        : error.message || "I couldn’t get an answer just now. Please try again.", false);
+    }
   }
 
   function escapeTaskText(value) {
@@ -776,9 +890,11 @@
     const text = rawText.trim();
     if (!text) return;
     addMessage(text, "user");
+    rememberConversation("user", text);
     processCalendarCommand(text)
       .then((handled) => {
-        if (!handled) processPlannerMessage(text);
+        if (handled) return;
+        if (processPlannerMessage(text) === false) askAi(text);
       })
       .catch((error) => {
         console.error("Couldn't process the calendar request.", error);
@@ -828,7 +944,7 @@
     if (/\b(help|what can you do)\b/i.test(normalized)) {
       return respond("I can keep your daily list, set reminders, and tell you what’s coming up. If you connect Google Calendar, you can also ask me to read, add, rename, move, or remove calendar events. Try “Remind me to take a break at 3 pm.”");
     }
-    return respond("I’m your little daily planner. Tell me “Remind me to…” to add something, ask what’s on your day, or say “I’m done with…” to check it off.");
+    return false;
   }
 
   function updateVoiceButton(listening) {
@@ -1001,6 +1117,43 @@
   document.querySelector("#voice-settings-button").addEventListener("click", () => {
     updateAvailableVoices();
     showDialog("#voice-dialog");
+  });
+  aiSettingsButton.addEventListener("click", () => {
+    aiEndpointInput.value = aiEndpoint;
+    showDialog("#ai-dialog");
+  });
+  document.querySelector("#save-ai-settings").addEventListener("click", () => {
+    const value = aiEndpointInput.value.trim();
+    if (!value) {
+      try {
+        localStorage.removeItem(AI_ENDPOINT_KEY);
+      } catch (error) {
+        console.error("Couldn't clear Brixie's AI connection setting.", error);
+        respond("I couldn’t clear the AI connection on this device. Check your browser storage and try again.", false);
+        return;
+      }
+      aiEndpoint = "";
+      aiDialog.close();
+      respond("The AI connection was removed from this device.", false);
+      return;
+    }
+
+    const normalizedEndpoint = normalizeAiEndpoint(value);
+    if (!normalizedEndpoint) {
+      respond("Enter the full HTTPS Cloudflare Worker address ending in /chat. For local testing, use an HTTP localhost address ending in /chat.", false);
+      aiEndpointInput.focus();
+      return;
+    }
+    try {
+      localStorage.setItem(AI_ENDPOINT_KEY, normalizedEndpoint);
+    } catch (error) {
+      console.error("Couldn't save Brixie's AI connection setting.", error);
+      respond("I couldn’t save that connection on this device. Check your browser storage and try again.", false);
+      return;
+    }
+    aiEndpoint = normalizedEndpoint;
+    aiDialog.close();
+    respond("Brixie’s AI connection is saved on this device. Ask me anything to get started.", false);
   });
   voiceSelect.addEventListener("change", () => {
     selectedVoiceName = voiceSelect.value;

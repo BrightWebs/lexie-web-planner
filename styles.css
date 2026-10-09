@@ -93,6 +93,10 @@ h1 { margin: 14px 0 9px; color: #302940; font-size: clamp(28px, 4vw, 35px); font
 .message.assistant { align-self: flex-start; border-bottom-left-radius: 4px; background: #f7f5f8; color: #696270; }
 .message.user { align-self: flex-end; border-bottom-right-radius: 4px; background: #8066d1; color: #fff; }
 .message.error { border: 1px solid #f1dedb; background: #fff5f2; color: #a15853; }
+.message.pending { color: #8a8091; font-style: italic; }
+.message-sources { display: flex; flex-wrap: wrap; gap: 6px 10px; margin-top: 9px; padding-top: 8px; border-top: 1px solid #eae5ed; font-size: 9px; }
+.message-sources span { width: 100%; color: #958b9c; font-weight: 650; }
+.message-sources a { color: #7964b3; text-decoration: underline; text-underline-offset: 2px; }
 .suggestions { display: flex; flex-wrap: wrap; gap: 8px; padding: 3px 0 11px; }
 .suggestions button { padding: 6px 10px; border: 1px solid #ece7f0; border-radius: 999px; background: white; color: #817592; font-size: 9px; cursor: pointer; transition: border .15s, background .15s; }
 .suggestions button:hover { border-color: #cfc0eb; background: #faf8fd; }
@@ -116,7 +120,8 @@ h1 { margin: 14px 0 9px; color: #302940; font-size: clamp(28px, 4vw, 35px); font
 .voice-button.is-listening .stop-svg { display: block; }
 .voice-caption { margin-top: 8px; color: #90889a; font-size: 8px; font-weight: 750; letter-spacing: 1.25px; }
 .voice-hint { margin: 4px 0 0; color: #aaa4ae; font-size: 9px; text-align: center; }
-.voice-actions { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.voice-actions { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 12px; }
+.voice-actions .voice-hint { flex-basis: 100%; }
 .text-button { padding: 4px 6px; border: 0; background: transparent; color: #8371ad; font-size: 9px; font-weight: 650; cursor: pointer; text-decoration: underline; text-decoration-color: #ddd4ee; text-underline-offset: 3px; }
 .text-button:hover { color: #5e4996; }
 .calendar-section { margin-top: 25px; padding: 18px 21px 15px; border: 1px solid #f0edf1; border-radius: 20px; background: #fff; box-shadow: 0 9px 28px #42324e07; }
