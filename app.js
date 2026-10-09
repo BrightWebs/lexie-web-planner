@@ -50,20 +50,20 @@
     try {
       return localStorage.getItem("lexie-web-voice-v1") || "";
     } catch (error) {
-      console.error("Couldn't read Lexie's voice setting.", error);
+      console.error("Couldn't read Brixie's voice setting.", error);
       return "";
     }
   }
 
-  const feminineVoiceName = /\b(female|samantha|ava|allison|karen|moira|tessa|fiona|victoria|zoe|aria|jenny|sonia|susan|emma|kate|serena|siri|zira|hazel|catherine|eva|lulu|nicky)\b/i;
+  const preferredVoiceName = /\b(female|samantha|ava|allison|karen|moira|tessa|fiona|victoria|zoe|aria|jenny|sonia|susan|emma|kate|serena|siri|zira|hazel|catherine|eva|lulu|nicky)\b/i;
 
   function updateAvailableVoices() {
     if (!("speechSynthesis" in window)) return;
     speechVoices = window.speechSynthesis.getVoices()
       .filter((voice) => /^en(?:-|$)/i.test(voice.lang))
       .sort((left, right) => {
-        const feminine = Number(feminineVoiceName.test(right.name)) - Number(feminineVoiceName.test(left.name));
-        if (feminine) return feminine;
+        const preferred = Number(preferredVoiceName.test(right.name)) - Number(preferredVoiceName.test(left.name));
+        if (preferred) return preferred;
         const preferredRegion = Number(/^en-US/i.test(right.lang)) - Number(/^en-US/i.test(left.lang));
         return preferredRegion || left.name.localeCompare(right.name);
       });
@@ -75,14 +75,12 @@
     voiceSelect.replaceChildren();
     const autoOption = document.createElement("option");
     autoOption.value = "";
-    autoOption.textContent = speechVoices.some((voice) => feminineVoiceName.test(voice.name))
-      ? "Automatic — feminine-sounding English voice"
-      : "Automatic — device’s English voice";
+    autoOption.textContent = "Automatic — device’s English voice";
     voiceSelect.append(autoOption);
     for (const voice of speechVoices) {
       const option = document.createElement("option");
       option.value = voice.name;
-      option.textContent = `${voice.name} · ${voice.lang}${feminineVoiceName.test(voice.name) ? " · feminine-sounding" : ""}`;
+      option.textContent = `${voice.name} · ${voice.lang}`;
       voiceSelect.append(option);
     }
     const savedVoice = speechVoices.find((voice) => voice.name === selectedVoiceName);
@@ -93,7 +91,7 @@
   function preferredVoice() {
     if (!speechVoices.length) updateAvailableVoices();
     return speechVoices.find((voice) => voice.name === selectedVoiceName)
-      || speechVoices.find((voice) => feminineVoiceName.test(voice.name))
+      || speechVoices.find((voice) => preferredVoiceName.test(voice.name))
       || speechVoices[0]
       || null;
   }
@@ -115,7 +113,7 @@
         typeof task.alerted === "boolean"
       );
     } catch (error) {
-      console.error("Couldn't restore Lexie's saved reminders.", error);
+      console.error("Couldn't restore Brixie's saved reminders.", error);
       return [];
     }
   }
@@ -124,7 +122,7 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
     } catch (error) {
-      console.error("Couldn't save Lexie's reminders.", error);
+      console.error("Couldn't save Brixie's reminders.", error);
       addMessage("I couldn’t save your changes on this device. Check your available browser storage and try again.", "error");
     }
   }
@@ -159,7 +157,7 @@
   }
 
   function parseReminder(text) {
-    const prefix = /^(?:(?:hey\s+)?lexie[, ]+)?(?:please\s+)?(?:can you\s+)?(?:remind me to|remind me|add (?:a )?(?:reminder|task)(?: to)?|schedule|put (?:a )?(?:reminder|task)(?: to)?|plan to|i need to|i have to)\s*/i;
+    const prefix = /^(?:(?:hey\s+)?brixie[, ]+)?(?:please\s+)?(?:can you\s+)?(?:remind me to|remind me|add (?:a )?(?:reminder|task)(?: to)?|schedule|put (?:a )?(?:reminder|task)(?: to)?|plan to|i need to|i have to)\s*/i;
     if (!prefix.test(text.trim())) return null;
 
     let title = text.trim().replace(prefix, "");
@@ -479,7 +477,7 @@
 
   function parseCalendarCreate(text) {
     if (!/\bcalendar\b/i.test(text)) return null;
-    const addPrefix = /^(?:(?:hey\s+)?lexie[, ]+)?(?:please\s+)?(?:add|create|schedule|book|put)\s+(?:a\s+)?/i;
+    const addPrefix = /^(?:(?:hey\s+)?brixie[, ]+)?(?:please\s+)?(?:add|create|schedule|book|put)\s+(?:a\s+)?/i;
     if (!addPrefix.test(text)) return null;
     let details = text.replace(addPrefix, "");
     details = details.replace(/^(?:google\s+)?calendar\s+event(?:\s+(?:called|named|for))?\s+/i, "");
@@ -536,9 +534,9 @@
     const normalized = text.toLowerCase();
     const asksForEvents = /\b(calendar|google calendar|my events|meetings today)\b/i.test(normalized)
       && /\b(what|show|list|look|check|any|events|meetings|coming up|week|today)\b/i.test(normalized);
-    const deleteMatch = /^(?:(?:hey\s+)?lexie[, ]+)?(?:please\s+)?(?:delete|remove|cancel)\s+(?:the\s+)?(?:calendar\s+)?event\s+(.+?)(?:\s+from\s+(?:my\s+)?(?:google\s+)?calendar)?[?.!]*$/i.exec(text);
-    const renameMatch = /^(?:(?:hey\s+)?lexie[, ]+)?(?:please\s+)?(?:rename|retitle)\s+(?:the\s+)?(?:calendar\s+)?event\s+(.+?)\s+to\s+(.+?)\s*[?.!]*$/i.exec(text);
-    const moveMatch = /^(?:(?:hey\s+)?lexie[, ]+)?(?:please\s+)?(?:move|reschedule)\s+(?:my\s+)?(?:calendar\s+)?event\s+(.+?)\s+(?:to|at)\s+(.+?)\s*[?.!]*$/i.exec(text);
+    const deleteMatch = /^(?:(?:hey\s+)?brixie[, ]+)?(?:please\s+)?(?:delete|remove|cancel)\s+(?:the\s+)?(?:calendar\s+)?event\s+(.+?)(?:\s+from\s+(?:my\s+)?(?:google\s+)?calendar)?[?.!]*$/i.exec(text);
+    const renameMatch = /^(?:(?:hey\s+)?brixie[, ]+)?(?:please\s+)?(?:rename|retitle)\s+(?:the\s+)?(?:calendar\s+)?event\s+(.+?)\s+to\s+(.+?)\s*[?.!]*$/i.exec(text);
+    const moveMatch = /^(?:(?:hey\s+)?brixie[, ]+)?(?:please\s+)?(?:move|reschedule)\s+(?:my\s+)?(?:calendar\s+)?event\s+(.+?)\s+(?:to|at)\s+(.+?)\s*[?.!]*$/i.exec(text);
     const createRequest = parseCalendarCreate(text);
 
     if (!asksForEvents && !deleteMatch && !renameMatch && !moveMatch && !createRequest) return false;
@@ -743,7 +741,7 @@
         respond(reminder);
         if ("Notification" in window && Notification.permission === "granted" && document.visibilityState === "visible") {
           try {
-            new Notification("A little reminder from Lexie", { body: latest.title, icon: "./icon.svg", tag: `lexie-${latest.id}` });
+            new Notification("A little reminder from Brixie", { body: latest.title, icon: "./icon.svg", tag: `lexie-${latest.id}` });
           } catch (error) {
             console.error("Couldn't display the browser reminder notification.", error);
           }
@@ -812,7 +810,7 @@
       tasks.push({ id: newId(), ...reminder, completed: false, alerted: false });
       persistAndRender();
       if (reminder.dueAt) {
-        return respond(`All set! I added “${reminder.title}” for ${formatTime(reminder.dueAt)}. Keep Lexie open for its in-app reminder.`);
+        return respond(`All set! I added “${reminder.title}” for ${formatTime(reminder.dueAt)}. Keep Brixie open for its in-app reminder.`);
       }
       return respond(`I added “${reminder.title}” to your day. What time should I put it down for?`);
     }
@@ -825,7 +823,7 @@
     }
 
     if (/^(hi|hello|hey|good morning|good afternoon|good evening)\b/i.test(text)) {
-      return respond("Hi Lexie! It’s lovely to hear from you. What would you like to plan today?");
+      return respond("Hi! It’s lovely to hear from you. What would you like to plan today?");
     }
     if (/\b(help|what can you do)\b/i.test(normalized)) {
       return respond("I can keep your daily list, set reminders, and tell you what’s coming up. If you connect Google Calendar, you can also ask me to read, add, rename, move, or remove calendar events. Try “Remind me to take a break at 3 pm.”");
@@ -836,7 +834,7 @@
   function updateVoiceButton(listening) {
     isListening = listening;
     voiceButton.classList.toggle("is-listening", listening);
-    voiceButton.setAttribute("aria-label", listening ? "Stop listening" : "Talk to Lexie");
+    voiceButton.setAttribute("aria-label", listening ? "Stop listening" : "Talk to Brixie");
     voiceButton.setAttribute("aria-pressed", String(listening));
     voiceCaption.textContent = listening ? "I’M LISTENING" : "TAP TO TALK";
   }
@@ -1010,11 +1008,11 @@
       if (selectedVoiceName) localStorage.setItem("lexie-web-voice-v1", selectedVoiceName);
       else localStorage.removeItem("lexie-web-voice-v1");
     } catch (error) {
-      console.error("Couldn't save Lexie's voice choice.", error);
+      console.error("Couldn't save Brixie's voice choice.", error);
       addMessage("I couldn’t save that voice choice on this device.", "error");
     }
   });
-  document.querySelector("#preview-voice").addEventListener("click", () => speak("Hello, Lexie. I’m here to help make your day feel a little lighter."));
+  document.querySelector("#preview-voice").addEventListener("click", () => speak("Hello, I’m Brixie. I’m here to help make your day feel a little lighter."));
   document.querySelector("#voice-done").addEventListener("click", () => document.querySelector("#voice-dialog").close());
   window.speechSynthesis?.addEventListener?.("voiceschanged", updateAvailableVoices);
   document.querySelector("#dialog-done").addEventListener("click", () => document.querySelector("#install-dialog").close());
@@ -1023,7 +1021,7 @@
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
     deferredInstallPrompt = event;
-    installButton.setAttribute("aria-label", "Install Lexie");
+    installButton.setAttribute("aria-label", "Install Brixie");
   });
 
   document.addEventListener("visibilitychange", () => {
@@ -1033,7 +1031,7 @@
   if ("serviceWorker" in navigator && window.location.protocol !== "file:") {
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("./service-worker.js").catch((error) => {
-        console.error("Lexie couldn’t register offline support.", error);
+        console.error("Brixie couldn’t register offline support.", error);
       });
     });
   }
@@ -1069,5 +1067,5 @@
       renderTasks();
     }
   }, 60_000);
-  addMessage("Hi Lexie! I’m here to help with your day. Try “Remind me to call Mom at 5 pm,” or ask what’s on your list.");
+  addMessage("Hi! I’m Brixie, here to help with your day. Try “Remind me to call Mom at 5 pm,” or ask what’s on your list.");
 })();
